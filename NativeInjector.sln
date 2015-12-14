@@ -1,0 +1,38 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NativeInjector", "NativeInjector\NativeInjector.csproj", "{E18D09E8-3B04-43E5-836C-E268B9AD16C4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{039CD228-469B-45E4-80A8-D3432E07D3F6} = {039CD228-469B-45E4-80A8-D3432E07D3F6}
+		{3F749A65-BEF5-48F8-9516-F83515EE1991} = {3F749A65-BEF5-48F8-9516-F83515EE1991}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WinstonEnvUpdate", "WinstonEnvUpdate\WinstonEnvUpdate.vcxproj", "{039CD228-469B-45E4-80A8-D3432E07D3F6}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "WinstonEnvUpdate.64", "WinstonEnvUpdate\WinstonEnvUpdate.64.vcxproj", "{3F749A65-BEF5-48F8-9516-F83515EE1991}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{E18D09E8-3B04-43E5-836C-E268B9AD16C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E18D09E8-3B04-43E5-836C-E268B9AD16C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E18D09E8-3B04-43E5-836C-E268B9AD16C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E18D09E8-3B04-43E5-836C-E268B9AD16C4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{039CD228-469B-45E4-80A8-D3432E07D3F6}.Debug|Any CPU.ActiveCfg = Debug|Win32
+		{039CD228-469B-45E4-80A8-D3432E07D3F6}.Debug|Any CPU.Build.0 = Debug|Win32
+		{039CD228-469B-45E4-80A8-D3432E07D3F6}.Release|Any CPU.ActiveCfg = Release|Win32
+		{039CD228-469B-45E4-80A8-D3432E07D3F6}.Release|Any CPU.Build.0 = Release|Win32
+		{3F749A65-BEF5-48F8-9516-F83515EE1991}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{3F749A65-BEF5-48F8-9516-F83515EE1991}.Debug|Any CPU.Build.0 = Debug|x64
+		{3F749A65-BEF5-48F8-9516-F83515EE1991}.Release|Any CPU.ActiveCfg = Release|x64
+		{3F749A65-BEF5-48F8-9516-F83515EE1991}.Release|Any CPU.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
