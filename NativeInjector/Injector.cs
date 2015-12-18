@@ -9,33 +9,40 @@ using static NativeInjector.Utils;
 namespace NativeInjector
 {
     // TODO: fix ANSI/unicode differences?
-    internal static class Injector
+    public static class Injector
     {
         public static void UpdateEnv(uint pid, string variable, string value)
         {
-            using (var mapFile = WriteSharedMemory(variable, value))
+            var mapFile = IntPtr.Zero;
+            try
             {
+                mapFile = WriteSharedMemory(variable, value);
                 var dll = GetInjectionDllForProcess(pid);
                 Inject(pid, dll);
                 Eject(pid, dll);
             }
+            finally
+            {
+                if (mapFile != IntPtr.Zero) CloseHandle(mapFile);
+            }
         }
 
-        private static string GetInjectionDllForProcess(uint pid)
+        static string GetInjectionDllForProcess(uint pid)
         {
             var platform = Is64BitProcess(pid) ? 64 : 32;
             return $"WinstonEnvUpdate.{platform}.dll";
         }
 
-        private static SafeHandle WriteSharedMemory(string variable, string value)
+        static IntPtr WriteSharedMemory(string variable, string value)
         {
             var data = new WinstonEnvUpdate { Variable = variable, Value = value };
             var dataSize = (uint)Marshal.SizeOf<WinstonEnvUpdate>();
-
-            var bbuf = Marshal.AllocHGlobal((int)dataSize);
-            Marshal.StructureToPtr(data, bbuf, true);
-            using (var dataBuf = new SafeWin32Handle(bbuf))
+            var buf = IntPtr.Zero;
+            var view = IntPtr.Zero;
+            try
             {
+                buf = Marshal.AllocHGlobal((int)dataSize);
+                Marshal.StructureToPtr(data, buf, true);
                 var mapFile = CreateFileMapping(
                     new IntPtr(-1),
                     IntPtr.Zero,
@@ -43,46 +50,44 @@ namespace NativeInjector
                     0,
                     dataSize,
                     WinstonEnvUpdate.SharedMemName);
-                if (mapFile == null)
-                {
-                    throw new Exception("Failed to create shared memory");
-                }
 
-                using (var buf = MapViewOfFile(mapFile, FileMapAccess.FileMapAllAccess, 0, 0, new UIntPtr(dataSize)))
-                {
-                    if (buf == null)
-                    {
-                        throw new Exception("Failed to map view of file");
-                    }
-                    CopyMemory(buf, dataBuf, dataSize);
-                }
+                view = MapViewOfFile(mapFile, FileMapAccess.FileMapAllAccess, 0, 0, new UIntPtr(dataSize));
+                CopyMemory(view, buf, dataSize);
                 return mapFile;
+            }
+            finally
+            {
+                if (buf != IntPtr.Zero) Marshal.FreeHGlobal(buf);
+                if (view != IntPtr.Zero) UnmapViewOfFile(view);
             }
         }
 
-        private static void Inject(uint pid, string injectionDll)
+        static void Inject(uint pid, string injectionDll)
         {
             var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             path = Path.Combine(path, injectionDll);
             var pathBuf = Encoding.Unicode.GetBytes(path + "\0");
+            var pathBufLength = new IntPtr(pathBuf.Length);
 
-            using (var process = OpenProcess(
-                ProcessAccessFlags.QueryInformation |
-                ProcessAccessFlags.CreateThread |
-                ProcessAccessFlags.VirtualMemoryOperation |
-                ProcessAccessFlags.VirtualMemoryWrite,
-                false, pid))
-            using (var remoteDllPath = VirtualAllocEx(
-                process,
-                IntPtr.Zero,
-                new IntPtr(pathBuf.Length),
-                AllocationType.Commit | AllocationType.Reserve,
-                MemoryProtection.ReadWrite))
+            var process = IntPtr.Zero;
+            var remoteDllPath = IntPtr.Zero;
+            var remoteThread = IntPtr.Zero;
+            try
             {
-                if (remoteDllPath == null)
-                {
-                    throw new Exception("Unable to allocate memory in remote process");
-                }
+                process = OpenProcess(
+                    ProcessAccessFlags.QueryInformation |
+                    ProcessAccessFlags.CreateThread |
+                    ProcessAccessFlags.VirtualMemoryOperation |
+                    ProcessAccessFlags.VirtualMemoryWrite,
+                    false, pid);
+
+                remoteDllPath = VirtualAllocEx(
+                    process,
+                    IntPtr.Zero,
+                    pathBufLength,
+                    AllocationType.Commit | AllocationType.Reserve,
+                    MemoryProtection.ReadWrite);
+
                 // Copy DLL path to remote processes' address space
                 var numWritten = IntPtr.Zero;
                 if (!WriteProcessMemory(process, remoteDllPath, pathBuf, pathBuf.Length, out numWritten) ||
@@ -93,30 +98,33 @@ namespace NativeInjector
                 }
 
                 var threadId = IntPtr.Zero;
-                using (var moduleHandle = GetModuleHandle("kernel32.dll"))
-                using (var loadLibraryAddress = GetProcAddress(moduleHandle, "LoadLibraryW"))
-                using (
-                    var remoteThread = CreateRemoteThread(process, IntPtr.Zero, 0, loadLibraryAddress,
-                        remoteDllPath,
-                        0, out threadId))
-                {
-                    if (remoteThread == null)
-                    {
-                        throw new Exception($"Failed to inject DLL into process {pid}");
-                    }
+                var moduleHandle = GetModuleHandle("kernel32.dll");
+                var loadLibraryAddress = GetProcAddress(moduleHandle, "LoadLibraryW");
+                remoteThread = CreateRemoteThread(process, IntPtr.Zero, 0, loadLibraryAddress,
+                    remoteDllPath,
+                    0, out threadId);
 
-                    WaitForSingleObject(remoteThread, Timeout.Infinite);
-                }
+                WaitForSingleObject(remoteThread, Timeout.Infinite);
+            }
+            finally
+            {
+                if (remoteThread != IntPtr.Zero) CloseHandle(remoteThread);
+                if (remoteDllPath != IntPtr.Zero) VirtualFreeEx(process, IntPtr.Zero, pathBufLength, FreeType.Release);
+                if (process != IntPtr.Zero) CloseHandle(process);
             }
         }
 
-        private static void Eject(uint pid, string injectionDll)
+        static bool Eject(uint pid, string injectionDll)
         {
-            using (var snapshot = CreateToolhelp32Snapshot(SnapshotFlags.Module, pid))
+            var snapshot = IntPtr.Zero;
+            var process = IntPtr.Zero;
+            var remoteThread = IntPtr.Zero;
+            try
             {
-                var me = new MODULEENTRY32
+                snapshot = CreateToolhelp32Snapshot(SnapshotFlags.Module, pid);
+                var me = new ModuleEntry32
                 {
-                    dwSize = (uint)Marshal.SizeOf<MODULEENTRY32>()
+                    dwSize = (uint)Marshal.SizeOf<ModuleEntry32>()
                 };
                 var found = false;
                 // TODO: resolve unicode/ANSI issue?
@@ -131,28 +139,36 @@ namespace NativeInjector
                 }
                 if (!found)
                 {
-                    throw new Exception($"Module not found in pid {pid}");
+                    return false;
                 }
 
                 IntPtr threadId;
-                using (var process = OpenProcess(
+                process = OpenProcess(
                     ProcessAccessFlags.QueryInformation |
                     ProcessAccessFlags.CreateThread |
                     ProcessAccessFlags.VirtualMemoryOperation,
-                    false, pid))
-                using (var moduleHandle = GetModuleHandle("kernel32.dll"))
-                using (var freeLibraryAddress = GetProcAddress(moduleHandle, "FreeLibrary"))
-                using (var remoteThread = CreateRemoteThread(
+                    false, pid);
+                var moduleHandle = GetModuleHandle("kernel32.dll");
+                var freeLibraryAddress = GetProcAddress(moduleHandle, "FreeLibrary");
+                remoteThread = CreateRemoteThread(
                     process,
                     IntPtr.Zero,
                     0,
                     freeLibraryAddress,
-                    new SafeWin32Handle(me.modBaseAddr),
+                    me.modBaseAddr,
                     0,
-                    out threadId))
+                    out threadId);
                 {
                     WaitForSingleObject(remoteThread, Timeout.Infinite);
                 }
+                return true;
+            }
+            finally
+            {
+
+                if (remoteThread != IntPtr.Zero) CloseHandle(remoteThread);
+                if (process != IntPtr.Zero) CloseHandle(process);
+                if (snapshot != IntPtr.Zero) CloseHandle(snapshot);
             }
         }
     }

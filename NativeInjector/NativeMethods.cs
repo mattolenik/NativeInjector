@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Runtime.InteropServices;
-using System.Text;
 
 namespace NativeInjector
 {
@@ -104,8 +103,8 @@ namespace NativeInjector
 
         }
 
-        [StructLayout(LayoutKind.Sequential, CharSet = System.Runtime.InteropServices.CharSet.Ansi)]
-        public struct MODULEENTRY32
+        [StructLayout(LayoutKind.Sequential)]
+        public struct ModuleEntry32
         {
             public uint dwSize;
             public uint th32ModuleID;
@@ -122,7 +121,7 @@ namespace NativeInjector
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct PROCESSENTRY32
+        public struct ProcessEntry32
         {
             public uint dwSize;
             public uint cntUsage;
@@ -140,7 +139,7 @@ namespace NativeInjector
         public const int ERROR_NO_MORE_FILES = 0x12;
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct SYSTEM_INFO
+        public struct SystemInfo
         {
             public ushort processorArchitecture;
             ushort reserved;
@@ -156,47 +155,56 @@ namespace NativeInjector
         }
 
         [DllImport("kernel32.dll")]
-        public static extern SafeWin32Handle OpenProcess(
-            ProcessAccessFlags processAccess,
-            bool bInheritHandle,
-            uint processId);
+        public static extern IntPtr OpenProcess(ProcessAccessFlags processAccess, bool bInheritHandle, uint processId);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool CloseHandle(IntPtr hObject);
 
-        [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
-        public static extern SafeWin32Handle VirtualAllocEx(SafeHandle hProcess, IntPtr lpAddress,
-            IntPtr dwSize, AllocationType flAllocationType, MemoryProtection flProtect);
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern IntPtr VirtualAllocEx(
+            IntPtr hProcess,
+            IntPtr lpAddress,
+            IntPtr dwSize,
+            AllocationType flAllocationType,
+            MemoryProtection flProtect);
 
-        [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
-        public static extern bool VirtualFreeEx(IntPtr hProcess, IntPtr lpAddress,
-            int dwSize, FreeType dwFreeType);
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern bool VirtualFreeEx(
+            IntPtr hProcess,
+            IntPtr lpAddress,
+            IntPtr dwSize,
+            FreeType dwFreeType);
 
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool WriteProcessMemory(
-            SafeHandle hProcess,
-            SafeHandle lpBaseAddress,
+            IntPtr hProcess,
+            IntPtr lpBaseAddress,
             byte[] lpBuffer,
             int nSize,
             out IntPtr lpNumberOfBytesWritten);
 
-        [DllImport("kernel32.dll")]
-        public static extern SafeWin32Handle CreateRemoteThread(SafeHandle hProcess,
-            IntPtr lpThreadAttributes, uint dwStackSize, SafeHandle lpStartAddress,
-            SafeHandle lpParameter, uint dwCreationFlags, out IntPtr lpThreadId);
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern IntPtr CreateRemoteThread(
+            IntPtr hProcess,
+            IntPtr lpThreadAttributes,
+            uint dwStackSize,
+            IntPtr lpStartAddress,
+            IntPtr lpParameter,
+            uint dwCreationFlags,
+            out IntPtr lpThreadId);
 
-        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, ExactSpelling = true, SetLastError = true)]
-        public static extern SafeWin32Handle GetProcAddress(SafeHandle hModule, string procName);
+        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
+        public static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
 
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
-        public static extern SafeWin32Handle GetModuleHandle(string lpModuleName);
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern IntPtr GetModuleHandle(string lpModuleName);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern UInt32 WaitForSingleObject(SafeHandle hHandle, UInt32 dwMilliseconds);
+        public static extern UInt32 WaitForSingleObject(IntPtr hHandle, UInt32 dwMilliseconds);
 
         [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Auto)]
-        public static extern SafeWin32Handle CreateFileMapping(
+        public static extern IntPtr CreateFileMapping(
             IntPtr hFile,
             IntPtr lpFileMappingAttributes,
             FileMapProtection flProtect,
@@ -205,8 +213,8 @@ namespace NativeInjector
             string lpName);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern SafeWin32Handle MapViewOfFile(
-            SafeHandle hFileMappingObject,
+        public static extern IntPtr MapViewOfFile(
+            IntPtr hFileMappingObject,
             FileMapAccess dwDesiredAccess,
             UInt32 dwFileOffsetHigh,
             UInt32 dwFileOffsetLow,
@@ -215,37 +223,28 @@ namespace NativeInjector
         [DllImport("kernel32.dll", SetLastError = true)]
         public static extern bool UnmapViewOfFile(IntPtr lpBaseAddress);
 
-        [DllImport("kernel32.dll", EntryPoint = "CopyMemory", SetLastError = false)]
-        public static extern void CopyMemory(SafeHandle dest, SafeHandle src, uint count);
+        [DllImport("kernel32.dll", SetLastError = false)]
+        public static extern void CopyMemory(IntPtr dest, IntPtr src, uint count);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern SafeWin32Handle CreateToolhelp32Snapshot(SnapshotFlags dwFlags, uint th32ProcessId);
+        public static extern IntPtr CreateToolhelp32Snapshot(SnapshotFlags dwFlags, uint th32ProcessId);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool Module32First(SafeHandle hSnapshot, ref MODULEENTRY32 lpme);
+        public static extern bool Module32First(IntPtr hSnapshot, ref ModuleEntry32 lpme);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool Module32Next(SafeHandle hSnapshot, ref MODULEENTRY32 lpme);
+        public static extern bool Module32Next(IntPtr hSnapshot, ref ModuleEntry32 lpme);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool Process32First(SafeHandle hSnapshot, ref PROCESSENTRY32 lppe);
+        public static extern bool Process32First(IntPtr hSnapshot, ref ProcessEntry32 lppe);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool Process32Next(SafeHandle hSnapshot, ref PROCESSENTRY32 lppe);
+        public static extern bool Process32Next(IntPtr hSnapshot, ref ProcessEntry32 lppe);
 
-        [DllImport("kernel32.dll")]
-        public static extern void GetNativeSystemInfo(ref SYSTEM_INFO lpSystemInfo);
+        [DllImport("kernel32.dll", SetLastError = true)]
+        public static extern void GetNativeSystemInfo(ref SystemInfo lpSystemInfo);
 
         [DllImport("kernel32.dll", SetLastError = true, CallingConvention = CallingConvention.Winapi)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool IsWow64Process(
-            [In] SafeHandle hProcess,
-            [Out, MarshalAs(UnmanagedType.Bool)] out bool wow64Process
-            );
-
-        [DllImport("kernel32.dll", SetLastError = true, CallingConvention = CallingConvention.Winapi)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool IsWow64Process([In] IntPtr processHandle,
-            [Out, MarshalAs(UnmanagedType.Bool)] out bool wow64Process);
+        public static extern bool IsWow64Process(IntPtr processHandle, out bool wow64Process);
     }
 }
