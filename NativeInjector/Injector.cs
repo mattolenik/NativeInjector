@@ -65,8 +65,6 @@ namespace NativeInjector
 
         static bool Inject(uint pid, string injectionDll)
         {
-            AdjustDebugPrivileges(pid);
-
             var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             path = Path.Combine(path, injectionDll);
             var pathBuf = Encoding.Unicode.GetBytes(path + "\0");
@@ -81,7 +79,6 @@ namespace NativeInjector
                     ProcessAccessFlags.QueryInformation |
                     ProcessAccessFlags.CreateThread |
                     ProcessAccessFlags.VirtualMemoryOperation |
-                    ProcessAccessFlags.VirtualMemoryRead |
                     ProcessAccessFlags.VirtualMemoryWrite,
                     false,
                     pid);
@@ -114,11 +111,6 @@ namespace NativeInjector
                     0,
                     out threadId);
                 var err = Marshal.GetLastWin32Error();
-                if (err != 0)
-                {
-                    // TODO: log error?
-                    return false;
-                }
 
                 WaitForSingleObject(remoteThread, Timeout.Infinite);
                 return true;

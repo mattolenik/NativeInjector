@@ -58,6 +58,7 @@ namespace NativeInjector
             return null;
         }
 
+        // TODO: remove?
         public static void AdjustDebugPrivileges(uint pid)
         {
             var process = IntPtr.Zero;
