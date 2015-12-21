@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 
 namespace NativeInjector
 {
-    static class NativeMethods
+    static partial class NativeMethods
     {
         [Flags]
         public enum ProcessAccessFlags : uint
@@ -104,7 +104,7 @@ namespace NativeInjector
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct ModuleEntry32
+        public struct MODULEENTRY32
         {
             public uint dwSize;
             public uint th32ModuleID;
@@ -121,7 +121,7 @@ namespace NativeInjector
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct ProcessEntry32
+        public struct PROCESSENTRY32
         {
             public uint dwSize;
             public uint cntUsage;
@@ -139,7 +139,7 @@ namespace NativeInjector
         public const int ERROR_NO_MORE_FILES = 0x12;
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct SystemInfo
+        public struct SYSTEM_INFO
         {
             public ushort processorArchitecture;
             ushort reserved;
@@ -152,6 +152,44 @@ namespace NativeInjector
             public uint allocationGranularity;
             public ushort processorLevel;
             public ushort processorRevision;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct LUID
+        {
+            public uint LowPart;
+            public int HighPart;
+        }
+
+        /// <summary>
+        /// Alternate simple structure for single privilege setting:
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+        public struct TOKEN_PRIVILEGES
+        {
+            public UInt32 PrivilegeCount;
+            public LUID Luid;
+            public UInt32 Attributes;
+        }
+
+        public static class TOKEN_ACCESS
+        {
+            public const UInt32 STANDARD_RIGHTS_REQUIRED = 0x000F0000;
+            public const UInt32 STANDARD_RIGHTS_READ = 0x00020000;
+            public const UInt32 TOKEN_ASSIGN_PRIMARY = 0x0001;
+            public const UInt32 TOKEN_DUPLICATE = 0x0002;
+            public const UInt32 TOKEN_IMPERSONATE = 0x0004;
+            public const UInt32 TOKEN_QUERY = 0x0008;
+            public const UInt32 TOKEN_QUERY_SOURCE = 0x0010;
+            public const UInt32 TOKEN_ADJUST_PRIVILEGES = 0x0020;
+            public const UInt32 TOKEN_ADJUST_GROUPS = 0x0040;
+            public const UInt32 TOKEN_ADJUST_DEFAULT = 0x0080;
+            public const UInt32 TOKEN_ADJUST_SESSIONID = 0x0100;
+            public const UInt32 TOKEN_READ = (STANDARD_RIGHTS_READ | TOKEN_QUERY);
+            public const UInt32 TOKEN_ALL_ACCESS = (STANDARD_RIGHTS_REQUIRED | TOKEN_ASSIGN_PRIMARY |
+                TOKEN_DUPLICATE | TOKEN_IMPERSONATE | TOKEN_QUERY | TOKEN_QUERY_SOURCE |
+                TOKEN_ADJUST_PRIVILEGES | TOKEN_ADJUST_GROUPS | TOKEN_ADJUST_DEFAULT |
+                TOKEN_ADJUST_SESSIONID);
         }
 
         [DllImport("kernel32.dll")]
@@ -188,7 +226,7 @@ namespace NativeInjector
         public static extern IntPtr CreateRemoteThread(
             IntPtr hProcess,
             IntPtr lpThreadAttributes,
-            uint dwStackSize,
+            IntPtr dwStackSize,
             IntPtr lpStartAddress,
             IntPtr lpParameter,
             uint dwCreationFlags,
@@ -197,7 +235,7 @@ namespace NativeInjector
         [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
         public static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
 
-        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
         public static extern IntPtr GetModuleHandle(string lpModuleName);
 
         [DllImport("kernel32.dll", SetLastError = true)]
@@ -230,21 +268,34 @@ namespace NativeInjector
         public static extern IntPtr CreateToolhelp32Snapshot(SnapshotFlags dwFlags, uint th32ProcessId);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool Module32First(IntPtr hSnapshot, ref ModuleEntry32 lpme);
+        public static extern bool Module32First(IntPtr hSnapshot, ref MODULEENTRY32 lpme);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool Module32Next(IntPtr hSnapshot, ref ModuleEntry32 lpme);
+        public static extern bool Module32Next(IntPtr hSnapshot, ref MODULEENTRY32 lpme);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool Process32First(IntPtr hSnapshot, ref ProcessEntry32 lppe);
+        public static extern bool Process32First(IntPtr hSnapshot, ref PROCESSENTRY32 lppe);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern bool Process32Next(IntPtr hSnapshot, ref ProcessEntry32 lppe);
+        public static extern bool Process32Next(IntPtr hSnapshot, ref PROCESSENTRY32 lppe);
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern void GetNativeSystemInfo(ref SystemInfo lpSystemInfo);
+        public static extern void GetNativeSystemInfo(ref SYSTEM_INFO lpSystemInfo);
 
         [DllImport("kernel32.dll", SetLastError = true, CallingConvention = CallingConvention.Winapi)]
         public static extern bool IsWow64Process(IntPtr processHandle, out bool wow64Process);
+
+        [DllImport("advapi32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        public static extern bool LookupPrivilegeValue(string lpSystemName, string lpName, out LUID lpLuid);
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        public static extern bool OpenProcessToken(IntPtr processHandle, UInt32 desiredAccess, out IntPtr tokenHandle);
+
+        [DllImport("advapi32.dll", SetLastError = true)]
+        public static extern bool AdjustTokenPrivileges(
+            IntPtr tokenHandle,
+            bool disableAllPrivileges,
+            ref TOKEN_PRIVILEGES newState,
+            UInt32 zero, IntPtr null1, IntPtr null2);
     }
 }

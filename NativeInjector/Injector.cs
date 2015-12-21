@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -14,17 +15,17 @@ namespace NativeInjector
         public static void UpdateEnv(uint pid, string variable, string value)
         {
             var mapFile = IntPtr.Zero;
+            var dll = GetInjectionDllForProcess(pid);
             try
             {
                 mapFile = WriteSharedMemory(variable, value);
-                var dll = GetInjectionDllForProcess(pid);
                 Inject(pid, dll);
-                Eject(pid, dll);
             }
             finally
             {
                 if (mapFile != IntPtr.Zero) CloseHandle(mapFile);
             }
+            Eject(pid, dll);
         }
 
         static string GetInjectionDllForProcess(uint pid)
@@ -62,8 +63,10 @@ namespace NativeInjector
             }
         }
 
-        static void Inject(uint pid, string injectionDll)
+        static bool Inject(uint pid, string injectionDll)
         {
+            AdjustDebugPrivileges(pid);
+
             var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             path = Path.Combine(path, injectionDll);
             var pathBuf = Encoding.Unicode.GetBytes(path + "\0");
@@ -78,14 +81,16 @@ namespace NativeInjector
                     ProcessAccessFlags.QueryInformation |
                     ProcessAccessFlags.CreateThread |
                     ProcessAccessFlags.VirtualMemoryOperation |
+                    ProcessAccessFlags.VirtualMemoryRead |
                     ProcessAccessFlags.VirtualMemoryWrite,
-                    false, pid);
+                    false,
+                    pid);
 
                 remoteDllPath = VirtualAllocEx(
                     process,
                     IntPtr.Zero,
                     pathBufLength,
-                    AllocationType.Commit | AllocationType.Reserve,
+                    AllocationType.Commit,
                     MemoryProtection.ReadWrite);
 
                 // Copy DLL path to remote processes' address space
@@ -98,18 +103,30 @@ namespace NativeInjector
                 }
 
                 var threadId = IntPtr.Zero;
-                var moduleHandle = GetModuleHandle("kernel32.dll");
-                var loadLibraryAddress = GetProcAddress(moduleHandle, "LoadLibraryW");
-                remoteThread = CreateRemoteThread(process, IntPtr.Zero, 0, loadLibraryAddress,
+                var remoteKernel32 = GetKernel32Module(Process.GetProcessById((int) pid));
+                var loadLibraryAddress = GetFunctionAddress(remoteKernel32, "LoadLibraryW");
+                remoteThread = CreateRemoteThread(
+                    process,
+                    IntPtr.Zero,
+                    IntPtr.Zero,
+                    loadLibraryAddress,
                     remoteDllPath,
-                    0, out threadId);
+                    0,
+                    out threadId);
+                var err = Marshal.GetLastWin32Error();
+                if (err != 0)
+                {
+                    // TODO: log error?
+                    return false;
+                }
 
                 WaitForSingleObject(remoteThread, Timeout.Infinite);
+                return true;
             }
             finally
             {
                 if (remoteThread != IntPtr.Zero) CloseHandle(remoteThread);
-                if (remoteDllPath != IntPtr.Zero) VirtualFreeEx(process, IntPtr.Zero, pathBufLength, FreeType.Release);
+                if (remoteDllPath != IntPtr.Zero) VirtualFreeEx(process, remoteDllPath, pathBufLength, FreeType.Release);
                 if (process != IntPtr.Zero) CloseHandle(process);
             }
         }
@@ -122,9 +139,9 @@ namespace NativeInjector
             try
             {
                 snapshot = CreateToolhelp32Snapshot(SnapshotFlags.Module, pid);
-                var me = new ModuleEntry32
+                var me = new MODULEENTRY32
                 {
-                    dwSize = (uint)Marshal.SizeOf<ModuleEntry32>()
+                    dwSize = (uint)Marshal.SizeOf<MODULEENTRY32>()
                 };
                 var found = false;
                 // TODO: resolve unicode/ANSI issue?
@@ -153,7 +170,7 @@ namespace NativeInjector
                 remoteThread = CreateRemoteThread(
                     process,
                     IntPtr.Zero,
-                    0,
+                    IntPtr.Zero,
                     freeLibraryAddress,
                     me.modBaseAddr,
                     0,

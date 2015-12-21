@@ -25,7 +25,7 @@ namespace NativeInjector.Test
                         RedirectStandardError = true,
                         StandardOutputEncoding = Encoding.Unicode,
                         StandardErrorEncoding = Encoding.Unicode,
-                        CreateNoWindow = false,
+                        CreateNoWindow = false
                     }
                 };
                 process.Start();

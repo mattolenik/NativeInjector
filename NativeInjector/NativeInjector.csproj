@@ -43,6 +43,7 @@
     <Compile Include="NativeMethods.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SENames.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="WinstonEnvUpdate.cs" />
   </ItemGroup>

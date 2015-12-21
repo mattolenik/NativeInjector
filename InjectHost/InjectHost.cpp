@@ -12,6 +12,7 @@ int main()
         return 1;
     }
     WaitForSingleObject(mutex, INFINITE);
+    Sleep(4000);
     LPTSTR buf = new TCHAR[1024];
     GetEnvironmentVariable(_T("TEST"), buf, 1024);
     wprintf_s(_T("%s"), buf);
