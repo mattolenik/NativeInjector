@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.23107.0
+VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NativeInjector", "NativeInjector\NativeInjector.csproj", "{E18D09E8-3B04-43E5-836C-E268B9AD16C4}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -22,6 +22,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NativeInjector.Test", "Nati
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "InjectHost.64", "InjectHost\InjectHost.64.vcxproj", "{E6890D14-77BB-4F25-A40B-174593D43125}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ConsoleApplication1", "ConsoleApplication1\ConsoleApplication1.vcxproj", "{852C89CD-D41F-433F-9751-0D992DA72BA3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -53,6 +55,10 @@ Global
 		{E6890D14-77BB-4F25-A40B-174593D43125}.Debug|Any CPU.Build.0 = Debug|x64
 		{E6890D14-77BB-4F25-A40B-174593D43125}.Release|Any CPU.ActiveCfg = Release|x64
 		{E6890D14-77BB-4F25-A40B-174593D43125}.Release|Any CPU.Build.0 = Release|x64
+		{852C89CD-D41F-433F-9751-0D992DA72BA3}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{852C89CD-D41F-433F-9751-0D992DA72BA3}.Debug|Any CPU.Build.0 = Debug|x64
+		{852C89CD-D41F-433F-9751-0D992DA72BA3}.Release|Any CPU.ActiveCfg = Release|Win32
+		{852C89CD-D41F-433F-9751-0D992DA72BA3}.Release|Any CPU.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

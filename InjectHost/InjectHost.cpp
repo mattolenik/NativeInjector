@@ -1,21 +1,21 @@
 // InjectHost.cpp : Defines the entry point for the console application.
 
 #include "stdafx.h"
+#include <string>
+#include <iostream>
 
 int main()
 {
     _setmode(_fileno(stdout), _O_WTEXT);
-    HANDLE mutex = CreateMutex(nullptr, FALSE, _T("WinstonInjectHostMutex"));
-    if(mutex == nullptr)
+
+    std::wstring line;
+    wchar_t buf[1024];
+    std::getline(std::wcin, line);
+    if (line == L"continue")
     {
-        wprintf_s(_T("CreateMutex error: %d\n"), GetLastError());
-        return 1;
+        GetEnvironmentVariable(L"PATH", buf, 1024);
+        std::wcout << buf;
+        return 0;
     }
-    WaitForSingleObject(mutex, INFINITE);
-    Sleep(4000);
-    LPTSTR buf = new TCHAR[1024];
-    GetEnvironmentVariable(_T("TEST"), buf, 1024);
-    wprintf_s(_T("%s"), buf);
-    ReleaseMutex(mutex);
-    return 0;
+    return 1;
 }

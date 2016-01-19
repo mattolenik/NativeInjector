@@ -12,29 +12,43 @@ namespace NativeInjector.Test
         [TestMethod]
         public void TestNative()
         {
-            var expected = "injected from .NET";
-            using (var mutex = new Mutex(true, "WinstonInjectHostMutex"))
+            var injected = @"C:\path\injected\from\dotnet";
+            var process = new Process
             {
-                var process = new Process
+                StartInfo = new ProcessStartInfo
                 {
-                    StartInfo = new ProcessStartInfo
-                    {
-                        FileName = "InjectHost.64.exe",
-                        UseShellExecute = false,
-                        RedirectStandardOutput = true,
-                        RedirectStandardError = true,
-                        StandardOutputEncoding = Encoding.Unicode,
-                        StandardErrorEncoding = Encoding.Unicode,
-                        CreateNoWindow = false
-                    }
-                };
-                process.Start();
+                    FileName = "InjectHost.64.exe",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    RedirectStandardInput = true,
+                    StandardOutputEncoding = Encoding.Unicode,
+                    StandardErrorEncoding = Encoding.Unicode,
+                    CreateNoWindow = true
+                }
+            };
+            //process.StartInfo.EnvironmentVariables["PATH"] = @"C:\windows";
+            //process.StartInfo.EnvironmentVariables["PATH"] = @"";
+            //process.StartInfo.EnvironmentVariables.Remove("PATH");
+            //process.StartInfo.EnvironmentVariables["PATH"] = null;
+            process.Start();
+            var stdin = process.StandardInput;
+            try
+            {
                 Thread.Sleep(2000);
-                Injector.UpdateEnv((uint)process.Id, "TEST", expected);
-                mutex.ReleaseMutex();
-                process.WaitForExit();
+                Injector.PrependPath((uint) process.Id, injected);
+                stdin.WriteLine("continue");
+                stdin.Flush();
+                process.WaitForExit(10000);
                 var stdout = process.StandardOutput.ReadToEnd().Trim();
-                Assert.AreEqual(expected, stdout);
+                Assert.IsTrue(stdout.Contains(injected), "std does not contain '{0}'. stdout:\n{1}", injected, stdout);
+            }
+            finally
+            {
+                // Always write something to the test program so it can cleanly exit
+                stdin?.WriteLine("exit");
+                stdin?.Flush();
+                process?.Dispose();
             }
         }
     }

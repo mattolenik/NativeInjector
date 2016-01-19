@@ -2,15 +2,17 @@
 
 namespace NativeInjector
 {
-    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 4)]
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1)]
     struct WinstonEnvUpdate
     {
-        public static readonly string SharedMemName = "WinstonEnvUpdate";
+        public const string SharedMemName = "WinstonEnvUpdate";
 
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 128)]
-        public string Variable;
+        public const string Prepend = "prepend";
 
-        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 16384)]
-        public string Value;
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 24)]
+        public string Operation;
+
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1000)]
+        public string Path;
     }
 }

@@ -1,20 +1,22 @@
 #pragma once
 
+#include "stdafx.h"
+
 #pragma pack( push )
-#pragma pack( 4 )
+#pragma pack( 1 )
 
 struct WinstonEnvUpdate
 {
-	WCHAR variable[128];
-	WCHAR value[16384];
+	WCHAR operation[24];
+	WCHAR path[1000];
 
 	WinstonEnvUpdate()
 	{
-		ZeroMemory(variable, sizeof(variable));
-		ZeroMemory(value, sizeof(value));
+		ZeroMemory(operation, sizeof(operation));
+		ZeroMemory(path, sizeof(path));
 	}
 };
 
-TCHAR SHARED_MEM_NAME[] = _T("WinstonEnvUpdate");
-
 #pragma pack( pop )
+
+TCHAR SHARED_MEM_NAME[] = L"WinstonEnvUpdate";

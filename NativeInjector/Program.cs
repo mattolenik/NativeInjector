@@ -14,7 +14,7 @@ namespace NativeInjector
             {
                 throw new Exception("Could not get parent process ID");
             }
-            Injector.UpdateEnv(pid.Value, "TEST", args[0]);
+            Injector.PrependPath(pid.Value, args[0]);
         }
     }
 }

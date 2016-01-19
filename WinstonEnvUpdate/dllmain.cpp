@@ -1,8 +1,58 @@
-#define _CRT_SECURE_NO_WARNINGS
 #include "stdafx.h"
 #include <tchar.h>
 #include <string>
 #include "WinstonEnvUpdate.h"
+
+void trimTrailingChar(LPWSTR path, WCHAR chr)
+{
+    size_t len = wcslen(path);
+    if (path[len - 1] == chr) path[len - 1] = '\0';
+}
+
+void PrependPath(LPWSTR pathToAdd)
+{
+    WCHAR path[_MAX_ENV];
+    DWORD copied = GetEnvironmentVariable(L"PATH", path, _MAX_ENV);
+    // Rare case of unset or empty variable
+    if(copied == 0 || GetLastError() != NO_ERROR)
+    {
+        SetEnvironmentVariable(L"PATH", pathToAdd);
+        return;
+    }
+
+    LPWSTR nextToken = nullptr;
+    wchar_t delims[] = L";";
+
+    WCHAR pathToAddFull[MAX_PATH];
+    _wfullpath(pathToAddFull, pathToAdd, MAX_PATH);
+    trimTrailingChar(pathToAddFull, L'\\');
+
+    LPWSTR token = nullptr;
+    WCHAR tokenFull[MAX_PATH];
+    WCHAR pathCopy[_MAX_ENV];
+    wcscpy_s(pathCopy, path);
+    LPWSTR tokPtr = pathCopy;
+    while ((token = wcstok_s(tokPtr, delims, &nextToken)) != nullptr)
+    {
+        tokPtr = nullptr;
+        // Normalize all paths to full paths before making comparison
+        // This makes sure equivalent paths with different representations
+        // don't get duplicated (e.g. C:\path\to\foo and C:\path\to\..\to\foo)
+        _wfullpath(tokenFull, token, MAX_PATH);
+        trimTrailingChar(tokenFull, L'\\');
+        if (lstrcmpi(pathToAddFull, tokenFull) == 0)
+        {
+            return;
+        }
+    }
+    WCHAR newPath[_MAX_ENV];
+    newPath[0] = '\0';
+    wcscat_s(newPath, _MAX_ENV, pathToAddFull);
+    wcscat_s(newPath, _MAX_ENV, L";");
+    wcscat_s(newPath, _MAX_ENV, path);
+    SetEnvironmentVariable(L"PATH", newPath);
+    //wprintf(L"%s\n"), newPath);
+}
 
 BOOL UpdateEnv()
 {
@@ -12,7 +62,7 @@ BOOL UpdateEnv()
 
     if (mapFile == nullptr)
     {
-        OutputDebugString(TEXT("Error opening file map"));
+        OutputDebugString(L"Error opening file map");
         return FALSE;
     }
 
@@ -20,18 +70,17 @@ BOOL UpdateEnv()
 
     if (env == nullptr)
     {
-        OutputDebugString(TEXT("Error opening shared memory"));
+        OutputDebugString(L"Error opening shared memory");
         return FALSE;
     }
 
-    if (wcslen(env->value))
+    if(wcscmp(env->operation, L"prepend") == 0)
     {
-        SetEnvironmentVariableW(env->variable, env->value);
+        PrependPath(env->path);
     }
     else
     {
-        // Delete variable
-        SetEnvironmentVariableW(env->variable, nullptr);
+        OutputDebugString(L"Unrecognized operation");
     }
 
     if (env)
@@ -54,7 +103,7 @@ BOOL APIENTRY DllMain(HMODULE hModule,
     case DLL_PROCESS_ATTACH:
     {
         TCHAR buf[MAX_PATH] = {0};
-        _stprintf_s(buf, _T("Attached process: %d"), GetCurrentProcessId());
+        _stprintf_s(buf, L"Attached process: %d", GetCurrentProcessId());
         OutputDebugString(buf);
         UpdateEnv();
         break;

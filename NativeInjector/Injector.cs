@@ -12,20 +12,25 @@ namespace NativeInjector
     // TODO: fix ANSI/unicode differences?
     public static class Injector
     {
-        public static void UpdateEnv(uint pid, string variable, string value)
+        public static void PrependPath(uint pid, string path)
         {
             var mapFile = IntPtr.Zero;
             var dll = GetInjectionDllForProcess(pid);
             try
             {
-                mapFile = WriteSharedMemory(variable, value);
+                var data = new WinstonEnvUpdate
+                {
+                    Path = path,
+                    Operation = WinstonEnvUpdate.Prepend
+                };
+                mapFile = WriteSharedMemory(data);
                 Inject(pid, dll);
+                Eject(pid, dll);
             }
             finally
             {
                 if (mapFile != IntPtr.Zero) CloseHandle(mapFile);
             }
-            Eject(pid, dll);
         }
 
         static string GetInjectionDllForProcess(uint pid)
@@ -34,10 +39,9 @@ namespace NativeInjector
             return $"WinstonEnvUpdate.{platform}.dll";
         }
 
-        static IntPtr WriteSharedMemory(string variable, string value)
+        static IntPtr WriteSharedMemory<T>(T data)
         {
-            var data = new WinstonEnvUpdate { Variable = variable, Value = value };
-            var dataSize = (uint)Marshal.SizeOf<WinstonEnvUpdate>();
+            var dataSize = (uint)Marshal.SizeOf<T>();
             var buf = IntPtr.Zero;
             var view = IntPtr.Zero;
             try
