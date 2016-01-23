@@ -41,7 +41,7 @@ namespace NativeInjector.Test
                 stdin.Flush();
                 process.WaitForExit(10000);
                 var stdout = process.StandardOutput.ReadToEnd().Trim();
-                Assert.IsTrue(stdout.Contains(injected), "std does not contain '{0}'. stdout:\n{1}", injected, stdout);
+                Assert.IsTrue(stdout.Contains(injected), "stdout does not contain '{0}'. stdout:\n{1}", injected, stdout);
             }
             finally
             {

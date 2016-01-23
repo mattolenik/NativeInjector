@@ -7,15 +7,18 @@
 int main()
 {
     _setmode(_fileno(stdout), _O_WTEXT);
-
+    wchar_t buf[_MAX_ENV];
     std::wstring line;
-    wchar_t buf[1024];
     std::getline(std::wcin, line);
     if (line == L"continue")
     {
-        GetEnvironmentVariable(L"PATH", buf, 1024);
+        DWORD count = GetEnvironmentVariable(L"PATH", buf, _MAX_ENV);
+        DWORD error = GetLastError();
+        std::wcout << count << std::endl;
+        std::wcout << error << std::endl;
         std::wcout << buf;
         return 0;
     }
+    std::wcout << "error" << std::endl;
     return 1;
 }
