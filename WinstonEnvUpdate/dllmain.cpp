@@ -15,8 +15,8 @@ void log(LPWSTR str)
 {
 #ifdef _DEBUG
     HANDLE file = CreateFile(L"D:\\log.txt", FILE_APPEND_DATA, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
-    DWORD written;
     std::wstring data(str);
+    DWORD written;
     data += L"\r\n";
     auto bytes = data.c_str();
     WriteFile(file, bytes, data.length() * 2, &written, nullptr);
@@ -24,36 +24,24 @@ void log(LPWSTR str)
 #endif
 }
 
-void log(DWORD word, int radix = 10)
+void log(const std::wstring& str)
 {
 #ifdef _DEBUG
-    WCHAR str[20];
-    _itow_s(word, str, radix);
-    log(str);
-#endif
-}
-
-void log(bool val)
-{
-#ifdef _DEBUG
-    if (val) {
-        log(L"true");
-    }
-    else {
-        log(L"false");
-    }
+    HANDLE file = CreateFile(L"D:\\log.txt", FILE_APPEND_DATA, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    DWORD written;
+    std::wstring data = str;
+    data += L"\r\n";
+    auto bytes = data.c_str();
+    WriteFile(file, bytes, data.length() * 2, &written, nullptr);
+    CloseHandle(file);
 #endif
 }
 
 void PrependPath(LPWSTR pathToAdd)
 {
-    log(pathToAdd);
-    WCHAR path[MAX_ENV];
-    DWORD copied = GetEnvironmentVariable(L"PATH", path, MAX_ENV);
+    WCHAR pathBuf[MAX_ENV];
+    DWORD copied = GetEnvironmentVariable(L"PATH", pathBuf, MAX_ENV);
     DWORD error = GetLastError();
-    log(path);
-    log(copied);
-    log(error, 16);
     // Rare case of unset or empty variable
     if (copied == 0 || error == ERROR_ENVVAR_NOT_FOUND)
     {
@@ -61,20 +49,20 @@ void PrependPath(LPWSTR pathToAdd)
         SetEnvironmentVariable(L"PATH", pathToAdd);
         return;
     }
+    std::wstring path(pathBuf);
+    log(path.c_str());
 
     LPWSTR nextToken = nullptr;
     wchar_t delims[] = L";";
 
-    WCHAR pathToAddFull[MAX_PATH];
-    _wfullpath(pathToAddFull, pathToAdd, MAX_PATH);
-    trimTrailingChar(pathToAddFull, L'\\');
-    log(pathToAddFull);
+    WCHAR newPath[MAX_PATH];
+    _wfullpath(newPath, pathToAdd, MAX_PATH);
+    trimTrailingChar(newPath, L'\\');
+    log(newPath);
 
     LPWSTR token = nullptr;
     WCHAR tokenFull[MAX_PATH];
-    WCHAR pathCopy[MAX_ENV];
-    wcscpy_s(pathCopy, path);
-    LPWSTR tokPtr = pathCopy;
+    LPWSTR tokPtr = pathBuf;
     while ((token = wcstok_s(tokPtr, delims, &nextToken)) != nullptr)
     {
         tokPtr = nullptr;
@@ -83,22 +71,17 @@ void PrependPath(LPWSTR pathToAdd)
         // don't get duplicated (e.g. C:\path\to\foo and C:\path\to\..\to\foo)
         _wfullpath(tokenFull, token, MAX_PATH);
         trimTrailingChar(tokenFull, L'\\');
-        if (lstrcmpi(pathToAddFull, tokenFull) == 0)
+        if (lstrcmpi(newPath, tokenFull) == 0)
         {
             return;
         }
     }
-    WCHAR newPath[MAX_ENV];
-    newPath[0] = '\0';
-    wcscat_s(newPath, MAX_ENV, pathToAddFull);
-    wcscat_s(newPath, MAX_ENV, L";");
-    wcscat_s(newPath, MAX_ENV, path);
-    bool success = SetEnvironmentVariable(L"PATH", newPath);
+    std::wstring newVar(newPath);
+    newVar.append(L";");
+    newVar.append(path);
+    BOOL success = SetEnvironmentVariable(L"PATH", newVar.c_str());
     error = GetLastError();
-    log(success);
-    log(error, 16);
-    log(newPath);
-    //wprintf(L"%s\n"), newPath);
+    log(newVar);
 }
 
 BOOL UpdateEnv()
