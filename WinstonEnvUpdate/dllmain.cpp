@@ -19,7 +19,7 @@ void log(LPWSTR str)
     DWORD written;
     data += L"\r\n";
     auto bytes = data.c_str();
-    WriteFile(file, bytes, data.length() * 2, &written, nullptr);
+    WriteFile(file, bytes, static_cast<DWORD>(data.length() * sizeof(wchar_t)), &written, nullptr);
     CloseHandle(file);
 #endif
 }
@@ -32,7 +32,7 @@ void log(const std::wstring& str)
     std::wstring data = str;
     data += L"\r\n";
     auto bytes = data.c_str();
-    WriteFile(file, bytes, data.length() * 2, &written, nullptr);
+    WriteFile(file, bytes, static_cast<DWORD>(data.length() * sizeof(wchar_t)), &written, nullptr);
     CloseHandle(file);
 #endif
 }
@@ -136,7 +136,8 @@ BOOL APIENTRY DllMain(
         TCHAR buf[MAX_PATH] = { 0 };
         _stprintf_s(buf, L"Attached process: %d", GetCurrentProcessId());
         log(buf);
-        UpdateEnv();
+        BOOL success = UpdateEnv();
+        log(success ? L"Success" : L"Failure");
         break;
     }
 
