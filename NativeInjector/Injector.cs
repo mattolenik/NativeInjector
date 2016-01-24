@@ -9,23 +9,17 @@ using static NativeInjector.Utils;
 
 namespace NativeInjector
 {
-    // TODO: fix ANSI/unicode differences?
     public static class Injector
     {
-        public static void PrependPath(uint pid, string path)
+        public static void Inject<T>(uint pid, string sharedMemName, T payload)
         {
             var mapFile = IntPtr.Zero;
             var dll = GetInjectionDllForProcess(pid);
             try
             {
-                var data = new WinstonEnvUpdate
-                {
-                    Path = path,
-                    Operation = WinstonEnvUpdate.Prepend
-                };
-                mapFile = WriteSharedMemory(data);
-                Inject(pid, dll);
-                Eject(pid, dll);
+                mapFile = WriteSharedMemory(sharedMemName, payload);
+                InjectDll(pid, dll);
+                EjectDll(pid, dll);
             }
             finally
             {
@@ -39,7 +33,7 @@ namespace NativeInjector
             return $"WinstonEnvUpdate.{platform}.dll";
         }
 
-        static IntPtr WriteSharedMemory<T>(T data)
+        static IntPtr WriteSharedMemory<T>(string sharedMemName, T data)
         {
             var dataSize = (uint)Marshal.SizeOf<T>();
             var buf = IntPtr.Zero;
@@ -54,7 +48,7 @@ namespace NativeInjector
                     FileMapProtection.PageReadWrite,
                     0,
                     dataSize,
-                    WinstonEnvUpdate.SharedMemName);
+                    sharedMemName);
 
                 view = MapViewOfFile(mapFile, FileMapAccess.FileMapAllAccess, 0, 0, new UIntPtr(dataSize));
                 CopyMemory(view, buf, dataSize);
@@ -67,7 +61,7 @@ namespace NativeInjector
             }
         }
 
-        static bool Inject(uint pid, string injectionDll)
+        static bool InjectDll(uint pid, string injectionDll)
         {
             var path = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             path = Path.Combine(path, injectionDll);
@@ -114,7 +108,6 @@ namespace NativeInjector
                     remoteDllPath,
                     0,
                     out threadId);
-                var err = Marshal.GetLastWin32Error();
 
                 WaitForSingleObject(remoteThread, Timeout.Infinite);
                 return true;
@@ -127,7 +120,7 @@ namespace NativeInjector
             }
         }
 
-        static bool Eject(uint pid, string injectionDll)
+        static bool EjectDll(uint pid, string injectionDll)
         {
             var snapshot = IntPtr.Zero;
             var process = IntPtr.Zero;

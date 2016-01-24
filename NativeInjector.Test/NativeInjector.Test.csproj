@@ -54,6 +54,7 @@
   <ItemGroup>
     <Compile Include="NativeTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="WinstonEnvUpdate.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NativeInjector\NativeInjector.csproj">
@@ -70,6 +71,10 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <InProject>False</InProject>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="x64.runsettings" />
+    <None Include="x86.runsettings" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

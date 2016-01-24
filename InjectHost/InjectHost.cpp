@@ -14,8 +14,8 @@ int main()
     {
         DWORD count = GetEnvironmentVariable(L"PATH", buf, _MAX_ENV);
         DWORD error = GetLastError();
-        std::wcout << count << std::endl;
-        std::wcout << error << std::endl;
+        //std::wcout << count << std::endl;
+        //std::wcout << error << std::endl;
         std::wcout << buf;
         return 0;
     }

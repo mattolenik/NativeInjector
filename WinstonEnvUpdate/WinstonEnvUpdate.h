@@ -7,8 +7,8 @@
 
 struct WinstonEnvUpdate
 {
-	WCHAR operation[24];
-	WCHAR path[1000];
+	WCHAR operation[32];
+	WCHAR path[_MAX_ENV];
 
 	WinstonEnvUpdate()
 	{
@@ -19,4 +19,4 @@ struct WinstonEnvUpdate
 
 #pragma pack( pop )
 
-TCHAR SHARED_MEM_NAME[] = L"WinstonEnvUpdate";
+const TCHAR SHARED_MEM_NAME[] = L"WinstonEnvUpdate";

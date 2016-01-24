@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<RunSettings>
+  <!-- Configurations that affect the Test Framework -->
+  <RunConfiguration>
+    <!-- Path relative to solution directory -->
+    <ResultsDirectory>.\TestResults</ResultsDirectory>
+    <TargetPlatform>x64</TargetPlatform>
+  </RunConfiguration>
+  <!-- MSTest adapter -->
+  <MSTest>
+    <MapInconclusiveToFailed>True</MapInconclusiveToFailed>
+    <CaptureTraceOutput>false</CaptureTraceOutput>
+    <DeleteDeploymentDirectoryAfterTestRunIsComplete>False</DeleteDeploymentDirectoryAfterTestRunIsComplete>
+    <DeploymentEnabled>False</DeploymentEnabled>
+  </MSTest>
+  <TestRunParameters>
+    <Parameter name="platform" value="64" />
+  </TestRunParameters>
+</RunSettings>

@@ -9,12 +9,13 @@ namespace NativeInjector
         static void Main(string[] args)
         {
             //Debugger.Launch();
-            var pid = ParentProcessId((uint) Process.GetCurrentProcess().Id);
+            var pid = ParentProcessId((uint)Process.GetCurrentProcess().Id);
             if (pid == null)
             {
                 throw new Exception("Could not get parent process ID");
             }
-            Injector.PrependPath(pid.Value, args[0]);
+            var data = new WinstonEnvUpdate { Operation = WinstonEnvUpdate.Prepend, Path = args[0] };
+            Injector.Inject(pid.Value, WinstonEnvUpdate.SharedMemName, data);
         }
     }
 }

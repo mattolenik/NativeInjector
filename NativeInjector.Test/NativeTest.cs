@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -9,15 +10,17 @@ namespace NativeInjector.Test
     [TestClass]
     public class NativeTest
     {
+        public TestContext TestContext { get; set; }
+
         [TestMethod]
         public void TestNative()
         {
-            var injected = @"C:\path\injected\from\dotnet";
+            var injectedPath = @"C:\path\injected\from\dotnet";
             var process = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = "InjectHost.64.exe",
+                    FileName = $"InjectHost.{TestContext.Properties["platform"]}.exe",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
@@ -36,12 +39,15 @@ namespace NativeInjector.Test
             try
             {
                 Thread.Sleep(2000);
-                Injector.PrependPath((uint) process.Id, injected);
+                var data = WinstonEnvUpdate.Prepend(injectedPath);
+                Injector.Inject((uint) process.Id, WinstonEnvUpdate.SharedMemName, data);
                 stdin.WriteLine("continue");
                 stdin.Flush();
                 process.WaitForExit(10000);
                 var stdout = process.StandardOutput.ReadToEnd().Trim();
-                Assert.IsTrue(stdout.Contains(injected), "stdout does not contain '{0}'. stdout:\n{1}", injected, stdout);
+                Assert.IsTrue(
+                    stdout.StartsWith(injectedPath, StringComparison.InvariantCultureIgnoreCase),
+                    "stdout does not start with '{0}'. stdout:\n{1}", injectedPath, stdout);
             }
             finally
             {
