@@ -47,7 +47,12 @@ namespace NativeInjector.Test
             {
                 Thread.Sleep(2000);
                 var data = WinstonEnvUpdate.Prepend(injectedPath);
-                Injector.Inject((uint)process.Id, WinstonEnvUpdate.Dll32Name, WinstonEnvUpdate.Dll64Name, WinstonEnvUpdate.SharedMemName, data);
+                Injector.Inject(
+                    (uint) process.Id,
+                    WinstonEnvUpdate.Dll32Name,
+                    WinstonEnvUpdate.Dll64Name,
+                    $"{WinstonEnvUpdate.SharedMemName}-{process.Id}",
+                    data);
                 stdin.WriteLine("continue");
                 stdin.Flush();
                 process.WaitForExit(10000);

@@ -91,7 +91,18 @@ BOOL UpdateEnv()
 
     __try
     {
-        mapFile = OpenFileMapping(FILE_MAP_READ, FALSE, SHARED_MEM_NAME);
+        DWORD pid = GetCurrentProcessId();
+        // Long enough for 2^32
+        WCHAR pidStr[10];
+        _itow_s(pid, pidStr, 10);
+
+        WCHAR sharedMemName[32];
+        sharedMemName[0] = L'\0';
+        wcscat_s(sharedMemName, SHARED_MEM_NAME);
+        wcscat_s(sharedMemName, L"-");
+        wcscat_s(sharedMemName, pidStr);
+
+        mapFile = OpenFileMapping(FILE_MAP_READ, FALSE, sharedMemName);
 
         if (mapFile == nullptr)
         {
