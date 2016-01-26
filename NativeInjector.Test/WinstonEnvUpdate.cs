@@ -6,6 +6,8 @@ namespace NativeInjector.Test
     struct WinstonEnvUpdate
     {
         public const string SharedMemName = "WinstonEnvUpdate";
+        public const string Dll32Name = "WinstonEnvUpdate.32.dll";
+        public const string Dll64Name = "WinstonEnvUpdate.64.dll";
 
         [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 32)]
         public string Operation;

@@ -13,14 +13,21 @@ namespace NativeInjector.Test
         public TestContext TestContext { get; set; }
 
         [TestMethod]
-        public void TestNative()
+        public void Injection32And64()
         {
+            TestPlatform(32);
+            TestPlatform(64);
+        }
+
+        void TestPlatform(int platform)
+        {
+            TestContext.WriteLine($"Running test {nameof(TestPlatform)}, injecting into {platform}-bit process");
             var injectedPath = @"C:\path\injected\from\dotnet";
             var process = new Process
             {
                 StartInfo = new ProcessStartInfo
                 {
-                    FileName = $"InjectHost.{TestContext.Properties["platform"]}.exe",
+                    FileName = $"InjectHost.{platform}.exe",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
@@ -40,7 +47,7 @@ namespace NativeInjector.Test
             {
                 Thread.Sleep(2000);
                 var data = WinstonEnvUpdate.Prepend(injectedPath);
-                Injector.Inject((uint) process.Id, WinstonEnvUpdate.SharedMemName, data);
+                Injector.Inject((uint)process.Id, WinstonEnvUpdate.Dll32Name, WinstonEnvUpdate.Dll64Name, WinstonEnvUpdate.SharedMemName, data);
                 stdin.WriteLine("continue");
                 stdin.Flush();
                 process.WaitForExit(10000);

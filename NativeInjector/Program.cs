@@ -1,21 +1,32 @@
 ﻿using System;
-using System.Diagnostics;
-using static NativeInjector.Utils;
+using System.Linq;
 
 namespace NativeInjector
 {
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            //Debugger.Launch();
-            var pid = ParentProcessId((uint)Process.GetCurrentProcess().Id);
-            if (pid == null)
+            var pidOpt = args.FirstOrDefault();
+            uint pid;
+            if (!uint.TryParse(pidOpt, out pid))
             {
-                throw new Exception("Could not get parent process ID");
+                throw new Exception("Invalid PID argument");
             }
-            var data = new WinstonEnvUpdate { Operation = WinstonEnvUpdate.Prepend, Path = args[0] };
-            Injector.Inject(pid.Value, WinstonEnvUpdate.SharedMemName, data);
+            var sizeOpt = args.Skip(1).FirstOrDefault();
+            int payloadSize;
+            if (!int.TryParse(sizeOpt, out payloadSize))
+            {
+                throw new Exception("Invalid payload size argument");
+            }
+            var sharedMemName = args.Skip(2).FirstOrDefault();
+            var dllName = args.Skip(3).FirstOrDefault();
+            var payload = new byte[payloadSize];
+            using (var stdin = Console.OpenStandardInput())
+            {
+                stdin.Read(payload, 0, payloadSize);
+            }
+            Injector.Inject(pid, dllName, dllName, sharedMemName, payload);
         }
     }
 }
