@@ -1,4 +1,8 @@
 $reporter = @{$true="-appveyor";$false="-verbose"}[$CI -eq "True"]
-.\packages\xunit.runner.console.*\tools\xunit.console.exe .\NativeInjector.test\bin\$env:CONFIGURATION\NativeInjector.Test.dll $reporter
+$xunit64 = resolve-path ".\packages\xunit.runner.console.*\tools\xunit.console.exe"
+$xunit32 = resolve-path ".\packages\xunit.runner.console.*\tools\xunit.console.x86.exe"
+$testAssembly = ".\NativeInjector.test\bin\$env:CONFIGURATION\NativeInjector.Test.dll"
+
+& $xunit64 $testAssembly $reporter
 write-host
-.\packages\xunit.runner.console.*\tools\xunit.console.x86.exe .\NativeInjector.test\bin\$env:CONFIGURATION\NativeInjector.Test.dll $reporter
+& $xunit32 $testAssembly $reporter
