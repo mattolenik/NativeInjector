@@ -1,0 +1,1 @@
+[![Build status](https://ci.appveyor.com/api/projects/status/l3s9xjgjx90fpdeh?svg=true)](https://ci.appveyor.com/project/MattOlenik/nativeinjector)
