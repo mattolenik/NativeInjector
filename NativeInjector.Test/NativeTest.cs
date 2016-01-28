@@ -1,32 +1,36 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Xunit;
 
 namespace NativeInjector.Test
 {
-    [TestClass]
     public class NativeTest
     {
-        public TestContext TestContext { get; set; }
-
-        [TestMethod]
-        public void Injection32()
+        [Theory, ClassData(typeof(Platforms))]
+        public void InjectionEmptyPath(int platform)
         {
-            TestPlatform(32);
+            TestPlatform(platform, e => e["PATH"] = "");
         }
 
-        [TestMethod]
-        public void Injection64()
+        [Theory, ClassData(typeof(Platforms))]
+        public void InjectionNoSetPath(int platform)
         {
-            TestPlatform(64);
+            TestPlatform(platform, e => { });
         }
 
-        void TestPlatform(int platform)
+        [Theory, ClassData(typeof(Platforms))]
+        public void InjectionWithPath(int platform)
         {
-            TestContext.WriteLine($"Running test {nameof(TestPlatform)}, injecting into {platform}-bit process");
+            TestPlatform(platform, e => e["PATH"] = @"C:\windows;c:\windows\system32");
+        }
+
+        void TestPlatform(int platform, Action<StringDictionary> env)
+        {
             var injectedPath = @"C:\path\injected\from\dotnet";
             var process = new Process
             {
@@ -42,10 +46,8 @@ namespace NativeInjector.Test
                     CreateNoWindow = true
                 }
             };
-            //process.StartInfo.EnvironmentVariables["PATH"] = @"C:\windows";
-            //process.StartInfo.EnvironmentVariables["PATH"] = @"";
-            //process.StartInfo.EnvironmentVariables.Remove("PATH");
-            //process.StartInfo.EnvironmentVariables["PATH"] = null;
+            env(process.StartInfo.EnvironmentVariables);
+            process.StartInfo.EnvironmentVariables["PATH"] = null;
             process.Start();
             var stdin = process.StandardInput;
             try
@@ -53,7 +55,7 @@ namespace NativeInjector.Test
                 Thread.Sleep(2000);
                 var data = WinstonEnvUpdate.Prepend(injectedPath);
                 Injector.Inject(
-                    (uint) process.Id,
+                    (uint)process.Id,
                     WinstonEnvUpdate.Dll32Name,
                     WinstonEnvUpdate.Dll64Name,
                     $"{WinstonEnvUpdate.SharedMemName}-{process.Id}",
@@ -62,9 +64,7 @@ namespace NativeInjector.Test
                 stdin.Flush();
                 process.WaitForExit(10000);
                 var stdout = process.StandardOutput.ReadToEnd().Trim();
-                Assert.IsTrue(
-                    stdout.StartsWith(injectedPath, StringComparison.InvariantCultureIgnoreCase),
-                    "stdout does not start with '{0}'. stdout:\n{1}", injectedPath, stdout);
+                Assert.StartsWith(stdout, injectedPath, StringComparison.InvariantCultureIgnoreCase);
             }
             finally
             {
@@ -73,6 +73,20 @@ namespace NativeInjector.Test
                 stdin?.Flush();
                 process?.Dispose();
             }
+        }
+    }
+
+    public class Platforms : IEnumerable<object[]>
+    {
+        public IEnumerator<object[]> GetEnumerator()
+        {
+            yield return new object[] { 32 };
+            yield return new object[] { 64 };
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }

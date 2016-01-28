@@ -230,4 +230,4 @@ _Pvt_Extensions
 # FAKE - F# Make
 .fake/
 
-RunAs32.exe
+*.exe
