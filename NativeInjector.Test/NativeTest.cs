@@ -21,21 +21,7 @@ namespace NativeInjector.Test
         [TestMethod]
         public void Injection64()
         {
-            Exception ex = null;
-            try
-            {
-                TestPlatform(64);
-            }
-            catch (InvalidOperationException e)
-            {
-                ex = e;
-            }
-
-            // Should throw exception when injecting from 32-bit into 64-bit
-            if (!Environment.Is64BitProcess)
-            {
-                Assert.IsNotNull(ex);
-            }
+            TestPlatform(64);
         }
 
         void TestPlatform(int platform)

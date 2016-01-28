@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Reflection;
 
-namespace RunAs32
+namespace RunAs64
 {
     class Program
     {

@@ -69,5 +69,15 @@ namespace NativeInjector.Properties {
                 return ((byte[])(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] RunAs64 {
+            get {
+                object obj = ResourceManager.GetObject("RunAs64", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }

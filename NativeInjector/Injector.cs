@@ -17,40 +17,35 @@ namespace NativeInjector
             var targetPlatform = Is64BitProcess(pid) ? 64 : 32;
             var dll = targetPlatform == 64 ? dll64 : dll32;
 
-            if (targetPlatform == 64 && dll64 == null)
+            if (targetPlatform == 64 && !File.Exists(dll64))
             {
-                throw new ArgumentNullException(nameof(dll64), "64-bit DLL required when injecting into 64-bit process");
+                throw new ArgumentNullException(nameof(dll64), "64-bit DLL must exist when injecting into 64-bit process");
             }
-            if (targetPlatform == 32 && dll32 == null)
+            if (targetPlatform == 32 && !File.Exists(dll32))
             {
-                throw new ArgumentNullException(nameof(dll32), "32-bit DLL required when injecting into 32-bit process");
+                throw new ArgumentNullException(nameof(dll32), "32-bit DLL must exist when injecting into 32-bit process");
             }
 
             if (thisPlatform == targetPlatform)
             {
                 DirectInject(pid, dll, sharedMemName, payload);
             }
-            else if (thisPlatform == 64 && targetPlatform == 32)
+            else
             {
-                IndirectInject(pid, dll, sharedMemName, payload);
-            }
-            else if (thisPlatform == 32 && targetPlatform == 64)
-            {
-                throw new InvalidOperationException(
-                    "Injecting into 64-bit processes from 32-bit is unsupported. Instead, injector should just be run as 64-bit to begin with.");
+                IndirectInject(pid, dll, sharedMemName, targetPlatform, payload);
             }
         }
 
-        static void IndirectInject<T>(uint pid, string dll, string sharedMemName, T payload)
+        static void IndirectInject<T>(uint pid, string dll, string sharedMemName, int platform, T payload)
         {
-            using (var runAs32 = new TempRunAs32())
+            using (var runAs = new TempRunAs(platform))
             {
                 var data = SerializePayload(payload);
                 var process = new Process
                 {
                     StartInfo = new ProcessStartInfo
                     {
-                        FileName = runAs32.Path,
+                        FileName = runAs.Path,
                         UseShellExecute = false,
                         RedirectStandardOutput = true,
                         RedirectStandardError = true,
@@ -62,7 +57,10 @@ namespace NativeInjector
                 process.Start();
                 process.StandardInput.BaseStream.Write(data, 0, data.Length);
                 process.StandardInput.Flush();
-                process.WaitForExit(10000);
+                if (!process.WaitForExit(10000))
+                {
+                    throw new Exception("Timed out waiting for injection process to exit");
+                }
                 var stdout = process.StandardOutput.ReadToEnd();
                 var stderr = process.StandardError.ReadToEnd();
                 if (process.ExitCode != 0)
