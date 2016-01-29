@@ -1,9 +1,11 @@
 ﻿using System;
 using System.IO;
-using System.Reflection;
 
 namespace NativeInjector
 {
+    /// <summary>
+    /// Runs an Any CPU .NET program as 32 or 64-bit.
+    /// </summary>
     class TempRunAs : IDisposable
     {
         public string Path { get; }
