@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>NativeInjector</id>
+    <version>9.9.9.9</version>
+    <title>.NET native DLL injector</title>
+    <authors>Matthew Olenik</authors>
+    <owners>Matthew Olenik</owners>
+    <licenseUrl>https://opensource.org/licenses/MIT</licenseUrl>
+    <projectUrl>https://github.com/mattolenik/NativeInjector</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Inject native DLLs into other processes from .NET</description>
+    <copyright>Copyright (c) Matthew Olenik 2016</copyright>
+    <tags>dll code injection inject loadlibrary</tags>
+  </metadata>
+</package>
