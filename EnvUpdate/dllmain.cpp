@@ -4,6 +4,7 @@
 #include "EnvUpdate.h"
 
 #define MAX_ENV _MAX_ENV
+//#define LOG_PATH L"D:\\log.txt"
 
 void trimTrailingChar(LPWSTR str, WCHAR chr)
 {
@@ -13,8 +14,8 @@ void trimTrailingChar(LPWSTR str, WCHAR chr)
 
 void log(LPWSTR str)
 {
-#ifdef _DEBUG
-    HANDLE file = CreateFile(L"D:\\log.txt", FILE_APPEND_DATA, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+#if defined(_DEBUG) && defined(LOG_PATH)
+    HANDLE file = CreateFile(LOG_PATH, FILE_APPEND_DATA, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
     std::wstring data(str);
     DWORD written;
     data += L"\r\n";
@@ -26,8 +27,8 @@ void log(LPWSTR str)
 
 void log(const std::wstring& str)
 {
-#ifdef _DEBUG
-    HANDLE file = CreateFile(L"D:\\log.txt", FILE_APPEND_DATA, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+#if defined(_DEBUG) && defined(LOG_PATH)
+    HANDLE file = CreateFile(LOG_PATH, FILE_APPEND_DATA, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
     DWORD written;
     std::wstring data = str;
     data += L"\r\n";
