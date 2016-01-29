@@ -13,4 +13,7 @@
     <copyright>Copyright (c) Matthew Olenik 2016</copyright>
     <tags>dll code injection inject loadlibrary</tags>
   </metadata>
+  <files>
+    <file src="bin\Release\NativeInjector.exe" target="lib\" />
+  </files>
 </package>
