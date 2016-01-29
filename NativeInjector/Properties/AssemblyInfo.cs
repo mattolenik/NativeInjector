@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("NativeInjector")]
 [assembly: AssemblyDescription(".NET library to inject native DLLs into other processes")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("Matthew Olenik")]
 [assembly: AssemblyProduct("NativeInjector")]
 [assembly: AssemblyCopyright("Copyright © Matthew Olenik 2016")]
 [assembly: AssemblyTrademark("")]
