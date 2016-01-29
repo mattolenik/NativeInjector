@@ -13,7 +13,4 @@
     <DeleteDeploymentDirectoryAfterTestRunIsComplete>False</DeleteDeploymentDirectoryAfterTestRunIsComplete>
     <DeploymentEnabled>False</DeploymentEnabled>
   </MSTest>
-  <TestRunParameters>
-    <Parameter name="platform" value="32" />
-  </TestRunParameters>
 </RunSettings>
