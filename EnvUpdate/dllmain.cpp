@@ -1,7 +1,7 @@
 #include "stdafx.h"
 #include <tchar.h>
 #include <string>
-#include "WinstonEnvUpdate.h"
+#include "EnvUpdate.h"
 
 #define MAX_ENV _MAX_ENV
 
@@ -87,7 +87,7 @@ void PrependPath(LPWSTR pathToAdd)
 BOOL UpdateEnv()
 {
     HANDLE mapFile = nullptr;
-    WinstonEnvUpdate* env = nullptr;
+    EnvUpdate* env = nullptr;
 
     __try
     {
@@ -110,7 +110,7 @@ BOOL UpdateEnv()
             return FALSE;
         }
 
-        env = static_cast<WinstonEnvUpdate*>(MapViewOfFile(mapFile, FILE_MAP_READ, 0, 0, sizeof(WinstonEnvUpdate)));
+        env = static_cast<EnvUpdate*>(MapViewOfFile(mapFile, FILE_MAP_READ, 0, 0, sizeof(EnvUpdate)));
 
         if (env == nullptr)
         {

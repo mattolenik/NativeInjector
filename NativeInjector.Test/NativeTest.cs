@@ -52,13 +52,13 @@ namespace NativeInjector.Test
             var stdin = process.StandardInput;
             try
             {
-                Thread.Sleep(2000);
-                var data = WinstonEnvUpdate.Prepend(injectedPath);
+                Thread.Sleep(100);
+                var data = EnvUpdate.Prepend(injectedPath);
                 Injector.Inject(
                     (uint)process.Id,
-                    WinstonEnvUpdate.Dll32Name,
-                    WinstonEnvUpdate.Dll64Name,
-                    $"{WinstonEnvUpdate.SharedMemName}-{process.Id}",
+                    EnvUpdate.Dll32Name,
+                    EnvUpdate.Dll64Name,
+                    $"{EnvUpdate.SharedMemName}-{process.Id}",
                     data);
                 stdin.WriteLine("continue");
                 stdin.Flush();

@@ -61,6 +61,15 @@ namespace NativeInjector.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to 64-bit DLL must exist when injecting into 64-bit process.
+        /// </summary>
+        internal static string Injector_Inject__64_bit_DLL_must_exist_when_injecting_into_64_bit_process {
+            get {
+                return ResourceManager.GetString("Injector_Inject__64_bit_DLL_must_exist_when_injecting_into_64_bit_process", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
         internal static byte[] RunAs32 {

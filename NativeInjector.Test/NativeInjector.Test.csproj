@@ -69,7 +69,7 @@
   <ItemGroup>
     <Compile Include="NativeTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="WinstonEnvUpdate.cs" />
+    <Compile Include="EnvUpdate.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\NativeInjector\NativeInjector.csproj">
@@ -78,7 +78,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="$(SolutionDir)\WinstonEnvUpdate\bin\**\$(Configuration)\WinstonEnvUpdate.*.dll">
+    <Content Include="$(SolutionDir)\EnvUpdate\bin\**\$(Configuration)\EnvUpdate.*.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <InProject>False</InProject>
     </Content>

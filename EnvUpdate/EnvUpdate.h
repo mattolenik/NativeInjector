@@ -5,12 +5,12 @@
 #pragma pack( push )
 #pragma pack( 1 )
 
-struct WinstonEnvUpdate
+struct EnvUpdate
 {
 	WCHAR operation[32];
 	WCHAR path[_MAX_ENV];
 
-	WinstonEnvUpdate()
+	EnvUpdate()
 	{
 		ZeroMemory(operation, sizeof(operation));
 		ZeroMemory(path, sizeof(path));
@@ -19,4 +19,4 @@ struct WinstonEnvUpdate
 
 #pragma pack( pop )
 
-const TCHAR SHARED_MEM_NAME[] = L"WinstonEnvUpdate";
+const TCHAR SHARED_MEM_NAME[] = L"EnvUpdate";

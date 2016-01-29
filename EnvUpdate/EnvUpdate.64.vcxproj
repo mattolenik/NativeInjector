@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="WinstonEnvUpdate.vcxproj" />
+  <Import Project="EnvUpdate.vcxproj" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
@@ -13,6 +13,6 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{3F749A65-BEF5-48F8-9516-F83515EE1991}</ProjectGuid>
-    <ProjectName>WinstonEnvUpdate.64</ProjectName>
+    <ProjectName>EnvUpdate.64</ProjectName>
   </PropertyGroup>
 </Project>
