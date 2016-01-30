@@ -6,7 +6,7 @@ using static NativeInjector.NativeMethods;
 
 namespace NativeInjector
 {
-    class Utils
+    public class Utils
     {
         public static bool Is64BitProcess(uint pid)
         {
@@ -58,7 +58,7 @@ namespace NativeInjector
         }
 
         // TODO: remove?
-        public static void AdjustDebugPrivileges(uint pid)
+        internal static void AdjustDebugPrivileges(uint pid)
         {
             var process = IntPtr.Zero;
             var token = IntPtr.Zero;
@@ -99,7 +99,7 @@ namespace NativeInjector
             }
         }
 
-        public static ProcessModule GetKernel32Module(Process process)
+        internal static ProcessModule GetKernel32Module(Process process)
         {
             var processes = process.Modules;
             for (var i = 0; i < processes.Count; i++)
@@ -112,7 +112,7 @@ namespace NativeInjector
             throw new Exception($"kernel32.dll not present in process with pid = {process.Id}");
         }
 
-        public static IntPtr GetFunctionAddress(ProcessModule remoteKernel32, string name)
+        internal static IntPtr GetFunctionAddress(ProcessModule remoteKernel32, string name)
         {
             Process process = Process.GetCurrentProcess();
             ProcessModule kernel32 = GetKernel32Module(process);
