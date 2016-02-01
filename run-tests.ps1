@@ -1,4 +1,4 @@
-$reporter = @{$true="-appveyor";$false="-verbose"}[$CI -eq "True"]
+$reporter = @{$true="-appveyor";$false="-verbose"}[$env:CI -eq "True"]
 if(!$env:CONFIGURATION) {
   write-host '$env:CONFIGURATION not set, defaulting to "Debug"'
   write-host
